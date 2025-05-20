@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-9-&)8c16@w_)4nn0cq9vnn2$%x)4)3osrqmwa4uw11jugg3m%-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['harubayan-admin.onrender.com', 'localhost', '127.0.0.1']
 
 
 # Application definition
@@ -43,14 +43,15 @@ INSTALLED_APPS = [
 AUTH_USER_MODEL = 'admin_access.AdminUser'
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
+   'corsheaders.middleware.CorsMiddleware', 
+   'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
+    
     'django.middleware.common.CommonMiddleware',
 ]
 CORS_ALLOW_CREDENTIALS = True
@@ -58,7 +59,10 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:5500",  # VS Code Live Server default
     "http://localhost:5500",
-    "http://localhost:3000",  # or whatever your frontend URL is
+    "http://localhost:3000",
+    "http://127.0.0.1:8000", #backend
+    "https://harubayan-admin.onrender.com" #frontend
+  # or whatever your frontend URL is
 ] 
 
 
@@ -66,10 +70,19 @@ CSRF_COOKIE_HTTPONLY = False  # must be False to read from JS
 CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:5500",  # VS Code Live Server default
     'http://localhost:5500',
-     'http://127.0.0.1:8000'
+     'http://127.0.0.1:8000',
+     "https://harubayan-admin.onrender.com"
                         ]
-CSRF_COOKIE_SECURE = True  # only over HTTPS
+# settings.py
+
+# Also in settings.py
+SESSION_COOKIE_SAMESITE = 'None'
 SESSION_COOKIE_SECURE = True
+
+CSRF_COOKIE_SAMESITE = 'None'
+CSRF_COOKIE_SECURE = True
+
+
 
 ROOT_URLCONF = 'otp_admin_backend.urls'
 

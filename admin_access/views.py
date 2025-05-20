@@ -11,10 +11,12 @@ from .models import AdminUser
 from .serializers import LoginSerializer, OTPVerifySerializer
 from django.http import JsonResponse
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.csrf import csrf_exempt  # ✅ Add this
+
 
 @ensure_csrf_cookie
 def get_csrf_token(request):
-    return JsonResponse({'message': 'CSRF cookie set'})
+    return JsonResponse({'detail': 'CSRF cookie set'})
 
 
 # ✅ Ensures frontend can fetch CSRF token
@@ -23,6 +25,7 @@ class GetCSRFTokenView(APIView):
     def get(self, request):
         return Response({'message': 'CSRF cookie set'}, status=200)
 
+@method_decorator(csrf_exempt, name='dispatch')
 class LoginView(APIView):
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
@@ -51,19 +54,17 @@ class LoginView(APIView):
             return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+@method_decorator(csrf_exempt, name='dispatch')
 class OTPVerifyView(APIView):
-    permission_classes = [IsAuthenticated]
-
     def post(self, request):
         try:
-            print("Is user authenticated?", request.user.is_authenticated)
-            print("User:", request.user)
-            
+            if not request.user.is_authenticated:
+                return Response({'error': 'User not authenticated.'}, status=status.HTTP_403_FORBIDDEN)
+
             serializer = OTPVerifySerializer(data=request.data)
             if serializer.is_valid():
                 otp = serializer.validated_data['otp_code']
                 user = request.user
-                print(f"User OTP: {user.otp_code}, Received OTP: {otp}")
                 if user.otp_code == otp:
                     user.is_verified = True
                     user.save()
@@ -71,8 +72,6 @@ class OTPVerifyView(APIView):
                 else:
                     return Response({'error': 'Invalid OTP'}, status=status.HTTP_400_BAD_REQUEST)
             else:
-                print("Serializer errors:", serializer.errors)
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            print("Exception in OTPVerifyView:", str(e))
             return Response({'error': 'Server error during OTP verification', 'details': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
